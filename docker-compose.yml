@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:10-alpine
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+  redis:
+    container_name: redis
+    image: redis:5-alpine
+    command: redis-server
+    ports:
+      - 6379:6379
+    volumes:
+      - 'redis:/data'
+
+  api:
+    container_name: api
+    depends_on:
+      - postgres
+      - redis
+    command: tail -f /dev/null
+    build:
+      context: ./src/services/api
+      dockerfile: ./Dockerfile
+    ports:
+      - 8000:3000
+    environment:
+      - DATABASE_HOST=db
+    tty: true
+    volumes:
+      - ./src/services/api:/home/app
+
+volumes:
+  redis:
+  postgres:
